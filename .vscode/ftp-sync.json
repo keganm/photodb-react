@@ -1,0 +1,29 @@
+{
+    "remotePath": "./testing",
+    "host": "ftp.fluidity-dc.com",
+    "username": "keganmcgurk",
+    "password": "CVdfer09)(",
+    "port": 21,
+    "secure": false,
+    "protocol": "ftp",
+    "uploadOnSave": true,
+    "passive": false,
+    "debug": false,
+    "privateKeyPath": null,
+    "passphrase": null,
+    "ignore": [
+        "\\.vscode",
+        "\\.git",
+        "\\.DS_Store",
+        ".bootstrap-4.0.0",
+        ".bootstrap-4.5.0",
+        ".bootstrap-5.0.0",
+        ".node_modules",
+        ".scss"
+    ],
+    "generatedFiles": {
+        "uploadOnSave": true,
+        "extensionsToInclude": ["css"],
+        "path": "\\css"
+    }
+}
