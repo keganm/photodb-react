@@ -1,23 +1,50 @@
 import React,{useState,useEffect,useRef} from 'react';
-import {Layout,Button,BackTop,Row,Col} from 'antd';
+import {Layout,Drawer,Affix,Button,BackTop,Row,Col} from 'antd';
+import {InfoCircleOutlined} from '@ant-design/icons'
+
 const {Header,Footer,Sider,Content} = Layout;
 
+
 export const SideBar = (props)=>{
+    const sidebarstyle = ()=>
+    {
+        return {right:'10px', width:'46px',zIndex:'2'};
+    }
 
-    const [collapsed,setCollapse] = useState(true);
+    const [isVisible,setVisible] = useState(true);
 
-    const modifiedWidth = (collapsed)=>{
-        if(collapsed)
-        return {width:'400px'}
-        else
-        return {width:'50px'}
+    const toggleDrawer = () =>{
+        setVisible(!isVisible)
+    }
+    const showDrawer = () =>{
+        setVisible(true);
+    }
+    const hideDrawer = () =>{
+        setVisible(false);
     }
 
     return(
-        <Sider collapsible collapsed={collapsed} onCollapse={setCollapse} style={modifiedWidth(collapsed)}>
+        <>
 
-        <div style={{width:"100%"}}>sider</div>
-
-        </Sider>
+        <div className="floating-button-bot-right">
+            <Button
+                onClick={()=>{toggleDrawer()}}
+            >
+                <InfoCircleOutlined />
+            </Button>
+        </div>
+        
+        <Drawer
+            title="Basic Drawer"
+            placement="right"
+            closable = {true}
+            onClose = {hideDrawer}
+            visible = {isVisible}
+            getContainer={false}
+            width={450}
+        >
+            <p>Content</p>
+        </Drawer>
+</>
     )
 }

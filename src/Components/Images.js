@@ -22,8 +22,9 @@ const ImageCard = (args,props)=>{
         padding:'4px',
         width : '100%'
     };
+    
     function rowStyle(){return{position: "sticky",
-    zIndex: 10001,
+    zIndex: 2,
     marginBottom:marginOffset?marginOffset+"px":"-16vh"
 }}
 

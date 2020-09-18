@@ -4,10 +4,12 @@
   "private": true,
   "dependencies": {
     "@ant-design/icons": "^4.2.2",
+    "@craco/craco": "^5.6.4",
     "@testing-library/jest-dom": "^4.2.4",
     "@testing-library/react": "^9.3.2",
     "@testing-library/user-event": "^7.1.2",
     "antd": "^4.5.3",
+    "craco-less": "^1.17.0",
     "gapi-script": "^1.0.2",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
@@ -15,10 +17,9 @@
     "react-scripts": "3.4.1"
   },
   "scripts": {
-    "start": "set PORT=80 && react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "start": "set PORT=80 && craco start",
+    "build": "craco build",
+    "test": "craco test"
   },
   "eslintConfig": {
     "extends": "react-app"
