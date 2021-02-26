@@ -96,27 +96,27 @@ export const SideBar = (props) => {
    * Fill The Form in
    */
   const fillForm = () => {
-    SetFntName(removeFileType(fileMeta.name));
+    SetFntName(removeFileType(props.currentInfo.name));
 
-    if (fileMeta.properties) {
+    if (props.currentInfo.properties) {
       SetFntProject(
-        fileMeta.properties.project
-          ? fileMeta.properties.project
+        props.currentInfo.properties.project
+          ? props.currentInfo.properties.project
           : null
       );
       SetFntType(
-        fileMeta.properties.type
-          ? fileMeta.properties.type
+        props.currentInfo.properties.type
+          ? props.currentInfo.properties.type
           : null
       );
       SetFntRegion(
-        fileMeta.properties.region
-          ? fileMeta.properties.region
+        props.currentInfo.properties.region
+          ? props.currentInfo.properties.region
           : null
       );
       SetFntCredit(
-        fileMeta.properties.credit
-          ? fileMeta.properties.credit
+        props.currentInfo.properties.credit
+          ? props.currentInfo.properties.credit
           : null
       );
     }else{
@@ -127,16 +127,16 @@ export const SideBar = (props) => {
     }
 
     if (
-      fileMeta.parents &&
+      props.currentInfo.parents &&
       GoogleParents &&
       GoogleParents.isStructured
     )
       SetParentFolder(
-        GoogleParents.FindById(fileMeta.parents[0]).name
+        GoogleParents.FindById(props.currentInfo.parents[0]).name
       );
 
-    if (fileMeta.description)
-      SetFntTags(descriptionToTags(fileMeta.description));
+    if (props.currentInfo.description)
+      SetFntTags(descriptionToTags(props.currentInfo.description));
     else SetFntTags([]);
 
     showDrawer();
@@ -148,8 +148,7 @@ export const SideBar = (props) => {
   const onSubmitClicked = () => {
     console.log(props);
 
-    let successCount = 0;
-
+    let n = fntName + "." + fileExt;
     let t = fntTags.length > 0 ? tagsToDescription(fntTags) : null;
     let p = {};
     if (fntProject) p["project"] = fntProject;
@@ -158,40 +157,10 @@ export const SideBar = (props) => {
     if (fntCredit) p["credit"] = fntCredit;
     if (Object.keys(p).length === 0) p = null;
 
-    if(props.selectionSet.length > 0){
-      let paddnum = ("" + props.selectionSet.length).length;
-      for(let i = 0; i < props.selectionSet.length; i++)
-      {
-        let ext = props.selectionSet[i].name.split('.');
-        ext = ext[ext.length-1];
-        let pad = ''+(i+1);
-        let n = fntName + "_" + pad.padStart(paddnum,'0') + "." + ext;
-
-        setTimeout(()=>{
-          GoogleDrive.UpdateFileContents(props.selectionSet[i].id, n, t, p, (resp) => {
-            console.log(resp);
-            successCount++;
-            if(successCount >= props.selectionSet.length)
-              onSubmitSuccess();
-          });},Math.random()*4000+500);
-      }
-    }
-    else{
-      let n = fntName + "." + fileExt;
-
-      GoogleDrive.UpdateFileContents(fileMeta.id, n, t, p, (resp) => {
-        console.log(resp);
-        onSubmitSuccess();
-      });
-    }
-
-    
+    GoogleDrive.UpdateFileContents(props.currentInfo.id, n, t, p, (resp) => {
+      console.log(resp);
+    });
   };
-
-  const onSubmitSuccess = () =>{
-    console.log("Submit Success!");
-    props.ReloadImages();
-  }
   
 
   /**
@@ -199,17 +168,12 @@ export const SideBar = (props) => {
    */
 
   useEffect(() => {
-    console.log(props.currentInfo)
-    console.log(props.selectionSet)
-    if (props.currentInfo)
-      SetFileMeta(props.currentInfo);
+    if (props.currentInfo) fillForm();
   }, [props.currentInfo]);
 
-
   useEffect(()=>{
-    if(fileMeta)
-      fillForm();
-  },[fileMeta])
+
+  })
 
 
   /**

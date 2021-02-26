@@ -1,287 +1,311 @@
-import React, { useState, useEffect,useRef } from 'react'
-import {Card, Button, Row,Col} from 'antd';
-import { EditOutlined, EllipsisOutlined, SettingOutlined } from '@ant-design/icons';
+import React, { useState, useEffect, useRef } from "react";
+import { useHistory } from "react-router-dom";
+import {
+  Card,
+  Button,
+  Row,
+  Col,
+  Menu,
+  Dropdown,
+  message,
+  Checkbox,
+} from "antd";
+import {
+  EditOutlined,
+  EllipsisOutlined,
+  MenuOutlined,
+  SettingOutlined,
+} from "@ant-design/icons";
 
-import { Image } from 'antd';
+import { Image } from "antd";
 
-import {MediaSizes, CheckMedia} from '../Utils/MediaQuery';
+import { MediaSizes, CheckMedia } from "../Utils/MediaQuery";
 
-import {GoogleDrive,QUERIES} from './GoogleDrive';
-import {GoogleParents} from './parentManager';
+import { GoogleDrive, QUERIES } from "./GoogleDrive";
+import { GoogleParents } from "./parentManager";
+import { ImageCard } from "./ImageCard";
+import { SideBar } from "./Sidebar";
+import { kMimeOptions } from "../Utils/FileProperties";
+const { Meta } = Card;
 
-const {Meta} = Card;
-const ImageCard = (args,props)=>{
-    const cardEle = useRef(null)
+export const Images = (props) => {
+  const [screenWidth, SetScreenWidth] = useState(window.innerWidth);
+  const [files, setFiles] = useState(null);
+  const [selectionMode, SetSelectionMode] = useState(false);
+  const [selectionSet, SetSelectionSet] = useState([]);
+  const [isSelectAll, SetSelectAll] = useState(false);
 
-    const [isHovering,SetIsHovering] = useState(false);
-    const [originalHeight,SetOriginalHeight] = useState(null);
-    const [marginOffset,SetMarginOffset] = useState(null)
-    
-    let style = {
-        textAlign:'center',
-        padding:'4px',
-        width : '100%'
-    };
-    
-    function rowStyle(){return{position: "sticky",
-    zIndex: 2,
-    marginBottom:marginOffset?marginOffset+"px":"-16vh"
-}}
+  const mySideBar = useRef(null);
+  useEffect(() => {
+    window.addEventListener("resize", () => {
+      SetScreenWidth(window.innerWidth);
+    });
+  }, []);
 
+  function IsReady() {
+    return props.currentFolder && props.photoFolder && props.gapiInterface;
+  }
 
-    /*Preview type presentation*/
-    function loadInImage(){
-        if(cardEle)
-            SetOriginalHeight(cardEle.current.clientHeight)
-        SetIsHovering(true);
+  function OnFileListReturned(list) {
+    list.sort((a, b) => (a.name > b.name ? 1 : -1));
+    if (GoogleParents && GoogleParents.isStructured) {
+      for (let i = 0; i < list.length; i++) {
+        list[i].parentName = GoogleParents.FindById(list[i].parents[0]).name;
+      }
     }
-    useEffect(()=>{
-        if(cardEle && originalHeight)
-            SetMarginOffset(originalHeight - cardEle.current.clientHeight);
-    },[originalHeight])
+    setFiles(list);
+  }
 
-    function CardClicked(e){
-        console.log("Card Clicked");
+  function GetFiles() {
+    if (!IsReady()) return;
+    console.log("Get Files");
+    if (props.isSearchInterface)
+      GoogleDrive.GetFileList(OnFileListReturned, {
+        query: QUERIES.SearchQuery(props.searchPrams),
+      });
+    else
+      GoogleDrive.GetFileList(OnFileListReturned, {
+        query:
+          QUERIES.NoFolders() + " and " + QUERIES.ParentIs(props.currentFolder),
+      });
+  }
+
+  function ReloadImages() {
+    GetFiles();
+  }
+
+  useEffect(() => {
+    if (!props.photoFolder) return;
+    console.log(props.photoFolder);
+    GetFiles();
+  }, [
+    props.searchPrams,
+    props.photoFolder,
+    props.currentFolder,
+    props.gapiInterface,
+  ]);
+  useEffect(() => {
+    console.log(mySideBar);
+  }, [mySideBar]);
+
+  function ShowFiles() {
+    return files == null ? false : files.length > 0;
+  }
+
+  const ModifySelectionSet = (selected, img) => {
+    let indx = selectionSet.findIndex((crnt) => crnt.id === img.id);
+
+    if (selected) {
+      if (indx === -1) {
+        let tmp = selectionSet;
+        tmp.push(img);
+        SetSelectionSet(tmp);
+      }
+    } else {
+      if (indx > -1) {
+        let tmp = selectionSet;
+        tmp.splice(indx, 1);
+        SetSelectionSet(tmp);
+      }
     }
-    
-    return(
-        <Row style={isHovering&&rowStyle()} 
-            key={props.id}>
-            {props.thumbnailLink && 
-            <Col ref={cardEle} span={24}>
-                <Card
-                        hoverable={true}
-                        className={"image-card"}
-                        style={style}
-                        cover={<img
-                            alt={props.name}
-                            onMouseUp={(e)=>{CardClicked(e)}}
-                            onDoubleClick={(e)=>{console.log("Double clicked")}}
-                            src={props.thumbnailLink}/>}
-                        onMouseEnter={()=>{loadInImage()}}
-                        onMouseLeave={()=>{SetIsHovering(false)}}
-                        actions={isHovering&&[
-                            <SettingOutlined key="setting" onClick={()=>{console.log("Settings Clicked")}}/>,
-                            <EditOutlined key="edit" />,
-                            <EllipsisOutlined key="ellipsis" />,
-                            ]}
-                        >
-                        {
-                            /*<Image alt={props.name} 
-                                    width={220}
-                                src={"https://drive.google.com/u/0/uc?"+"id="+props.id+"&export=download"} 
-                                placeholder={
-                                <Image
-                                    src={props.thumbnailLink}
-                                    width={220}
-                                />}
-                                />*/
-                        }
-                        {isHovering && 
-                            <Meta className={"image-meta"} 
-                                    title={props.name} 
-                                    description={props.imageMediaMetadata?props.imageMediaMetadata.width+"x"+props.imageMediaMetadata.height:""}/>
-                        }
-                </Card>
-            </Col>
-        }
-        {/*!props.thumbnailLink &&
-            
-            <Col span={24}><Card 
-                        style={style} 
-                        >
-                    <Meta title={props.name}/>
-                </Card>
-                </Col>
-        */}
-            </Row>
-    )
-}
+  };
 
-export const Images = (props) =>{
-    const [screenWidth,SetScreenWidth] = useState(window.innerWidth);
-    const [files,setFiles] = useState(null);
+  const ClearSelection = () => {
+    console.log("Clear Selection");
+    SetSelectAll(false);
+  };
 
-    useEffect(()=>{
-        window.addEventListener('resize',()=>{
-            SetScreenWidth(window.innerWidth);
-        })
-    },[]);
+  const SelectAll = () => {
+    SetSelectAll(true);
+  };
 
-    function IsReady(){
-        return props.currentFolder && props.photoFolder && props.gapiInterface;
-    }
-
-    function OnFileListReturned(list)
-    {
-        console.log(list);
-        setFiles(list);
-    }
-
-    function GetFiles(){
-        if(!IsReady())
-            return;
-        console.log("Get Files");
-        GoogleDrive.GetFileList(OnFileListReturned,{query:QUERIES.NoFolders() + " and " + QUERIES.ParentIs(props.currentFolder)})
-    }
-
-    useEffect(()=>{
-        if(!props.gapiInterface)
-            return;
-        console.log(props.gapiInterface);
-
-    },[props.gapiInterface])
-    
-    useEffect(()=>{
-        if(!props.photoFolder)
-            return;
-        console.log(props.photoFolder);
-        GetFiles();
-    },[props.photoFolder, props.currentFolder, props.gapiInterface])
-
-    useEffect(()=>{
-        if(!props.fileList)
-            return;
-        console.log(props.fileList);
-    },[props.fileList])
-
-
-
-    function ShowFiles(){
-        return files==null?false:files.length>0;
-    }
-    function GetEveryX(x,offset){
-        let tmp = [];
-        for(var i = offset; i < files.length; i+=x)
-            tmp.push(files[i]);
-        return tmp;
+  function SortToCol(count) {
+    if (count === 1) {
+      return [files];
     }
 
-    function SortToCol(count){
+    let cols = [];
 
-        if(count === 1){
-            return [files];
+    if (files.length <= count) {
+      for (let i = 0; i < count; i++) cols.push(files[i] ? [files[i]] : null);
+      return cols;
+    }
+
+    for (let i = 0; i < count; i++) cols.push([]);
+
+    if (files.length <= count * 2) {
+      for (let i = 0; i < files.length; i++) {
+        let ti = i;
+        while (ti >= count) {
+          ti -= count;
         }
 
-        let cols = []
-        
-        if(files.length <= count){
-            for(let i = 0; i < count; i++)
-                cols.push(files[i]?[files[i]]:null);
-            return cols;
-        }
-        
-        for(let i = 0; i < count; i++)
-            cols.push([])
-
-            
-
-        let trgtmax = 1;
-        let coltrgt = 0;
-        let accum = 0;
-        let maxaccum = trgtmax;
-        let accumthresh = 0.1;
-
-
-
-        /*MAYBE or return to commented version below*/
-        /*
-        let totalRatio = 0;
-        let avgRatio = .66;
-        for(let i = 0; i < files.length; i++){
-            let meta = files[i].imageMediaMetadata;
-            let r = meta?(meta.height === 0 || meta.width === 0)?0.66:(meta.height/meta.width):0.66;
-            totalRatio += r;
-            avgRatio += r;
-            avgRatio *= 0.5;
-        }
-
-        avgRatio*=0.5;
-        for(let i = 0; i < files.length; i++)
-        {
-            let meta = files[i].imageMediaMetadata;
-            let ratio = meta?meta.height/meta.width:1;
-            if(!meta || meta.height === 0 || meta.width === 0)
-                ratio = 1;
-
-            cols[coltrgt].push(files[i]);
-            accum += ratio;
-
-            if(accum >= totalRatio/count-avgRatio && coltrgt < cols.lengt-1){
-                console.log(totalRatio/count + " : " + accum);
-                accum = 0;
-                coltrgt++;
-            }
-        }
-*/
-
-        for(let i = 0; i < files.length; i++)
-        {
-            let meta = files[i].imageMediaMetadata;
-            let ratio = meta?meta.height/meta.width:1;
-            if(!meta || meta.height === 0 || meta.width === 0)
-                ratio = 1;
-
-            cols[coltrgt].push(files[i]);
-            accum += ratio;
-
-            if(accum >= maxaccum-accumthresh){
-                maxaccum = (trgtmax+accum)/2;
-                coltrgt++;
-                accum = 0;
-                if(coltrgt >= count){
-                    console.log("linebreak: " + maxaccum)
-                    coltrgt = 0;
-                    //maxaccum = (trgtmax+maxaccum)/2;
-                }
-            }
-        }
-        return cols;
+        cols[ti].push(files[i]);
+      }
+      return cols;
     }
 
-    function GetCol(col){
-        if(col)
-        return(col.map((item)=>ImageCard({screenWidth:screenWidth,SetCurrentFolder:props.SetCurrentFolder},item)));
-        return(col);
-        
+    let trgtmax = 0.25;
+    let coltrgt = 0;
+    let accum = 0;
+    let maxaccum = trgtmax;
+    let accumthresh = 0.1;
+
+    for (let i = 0; i < files.length; i++) {
+      let meta = files[i].imageMediaMetadata;
+      let ratio = meta ? meta.height / meta.width : 1;
+      if (!meta || meta.height === 0 || meta.width === 0) ratio = 1;
+
+      cols[coltrgt].push(files[i]);
+      accum += ratio;
+
+      if (accum >= maxaccum - accumthresh) {
+        maxaccum = (trgtmax + accum) / 2;
+        coltrgt++;
+        accum = 0;
+        if (coltrgt >= count) {
+          coltrgt = 0;
+        }
+      }
     }
-    function RatioBasedColumms(){
+    return cols;
+  }
 
-        let count = CheckMedia(screenWidth);
+  const [isVisible, setVisible] = useState(true);
+  const [currentInfo, SetCurrentInfo] = useState(null);
 
-        let tmparray = [];
-        for(var i = 0; i < count; i++)
-            tmparray.push(i);
+  const ShowSideBar = (info) => {
+    if (!info) return;
+    SetCurrentInfo(info);
+    setVisible(true);
+  };
 
-
-        let cols = SortToCol(count);
-
-        console.log(cols);
-
-
-        if(!cols[cols.length-1])
-            count--;
-        else if(cols[cols.length-1] && cols[cols.length-1].length <= 0)
-            count--;
-        
-        let span = Math.floor(24/count);
-        return (
-            cols.map((col,index)=>{
-                if(col && col.length > 0)
-                    return (<Col key={index} span={span}>{GetCol(col)}</Col>)
-                return (<Col key={index} span={span}><></></Col>)
-                })
+  function GetCol(col) {
+    if (col)
+      return col.map((item) =>
+        ImageCard(
+          {
+            showSideBar: ShowSideBar,
+            screenWidth: screenWidth,
+            SetCurrentFolder: props.SetCurrentFolder,
+            selectionMode: selectionMode,
+            ModifySelectionSet: ModifySelectionSet,
+            isSelectAll: isSelectAll,
+            SearchByTag: SearchByTag,
+          },
+          item
         )
-    }
+      );
+    return col;
+  }
 
-    return(
-        <>{ShowFiles() &&
-        <Card title="Images" style={{paddingBottom: "18vh"}}>
-                <Row>
-                    <RatioBasedColumms/>
-                </Row>
+  function RatioBasedColumms() {
+    let count = CheckMedia(screenWidth);
+
+    let tmparray = [];
+    for (var i = 0; i < count; i++) tmparray.push(i);
+
+    let cols = SortToCol(count);
+
+    if (!cols[cols.length - 1]) count--;
+    else if (cols[cols.length - 1] && cols[cols.length - 1].length <= 0)
+      count--;
+
+    let span = Math.floor(24 / count);
+    return cols.map((col, index) => {
+      if (col && col.length > 0)
+        return (
+          <Col key={index} span={span}>
+            {GetCol(col)}
+          </Col>
+        );
+      return (
+        <Col key={index} span={span}>
+          <> </>
+        </Col>
+      );
+    });
+  }
+
+
+  let history = useHistory();
+  function SearchByTag(tag){
+    
+    let tmp = {
+      text: tag,
+      name: null,
+      project: null,
+      type: null,
+      region: null,
+      credit: null,
+      mime: ["image"],
+    };
+    console.log(tmp);
+    let h = "/search/?s=" + tag;
+    h+="&m=im";
+    history.push(h);
+    props.SetSearchPrams(tmp);
+  }
+  function handleMenuClick(e) {}
+
+  const ImageMenu = (
+    <Dropdown
+      overlay={
+        <Menu onClick={handleMenuClick}>
+          <Menu.Item key="ignore">
+            <Checkbox
+              checked={selectionMode}
+              onChange={(e) => {
+                if (!e.target.checked) SetSelectionSet([]);
+                SetSelectionMode(e.target.checked);
+              }}
+            >
+              Select Multiple
+            </Checkbox>
+          </Menu.Item>
+          <Menu.Item key="selectall">
+            <Checkbox
+              checked={isSelectAll}
+              onChange={(e) => {
+                SetSelectAll(e.target.checked);
+              }}
+            >
+              Select All
+            </Checkbox>
+          </Menu.Item>
+        </Menu>
+      }
+    >
+      <Button>
+        <MenuOutlined />
+      </Button>
+    </Dropdown>
+  );
+
+  return (
+    <>
+      {ShowFiles() && (
+        <Card
+          title="Images"
+          style={{
+            paddingBottom: "18vh",
+          }}
+          extra={ImageMenu}
+        >
+          <Row>
+            <RatioBasedColumms />
+          </Row>
         </Card>
-        }
-        </>
-    )
-}
+      )}
+
+      <SideBar
+        isSearchInterface={props.isSearchInterface}
+        isVisible={isVisible}
+        setVisible={setVisible}
+        selectionSet={selectionSet}
+        currentInfo={currentInfo}
+        ReloadImages={ReloadImages}
+      />
+    </>
+  );
+};

@@ -15,12 +15,14 @@
         "\\.vscode",
         "\\.git",
         "\\.DS_Store",
+        "src",
         ".bootstrap-4.0.0",
         ".bootstrap-4.5.0",
         ".bootstrap-5.0.0",
         ".node_modules",
         ".scss"
     ],
+    "pathMapping":{"build":"."},
     "generatedFiles": {
         "uploadOnSave": true,
         "extensionsToInclude": ["css"],
