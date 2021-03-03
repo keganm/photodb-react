@@ -3,8 +3,13 @@
 @spacing-dist : 4px;
 @scalar-font-size :calc(12px + 1vw);
 
+body{
+overflow: hidden;
+}
+
 .App {
   text-align: center;
+  overflow-y:auto;
 }
 
 .App-header {
@@ -20,7 +25,14 @@
 .search-fields {
   width: 100%;
 }
-
+.ant-card-hoverable{
+  transition: padding 0.3s, box-shadow 0.3s, border-color 0.3s;
+}
+.ant-card-hoverable:hover {
+  border-color: rgb(100, 182, 236);
+  border-width: 2px;
+  padding:1px !important;
+}
 
 .ant-image-preview-operations {
   z-index: 5;

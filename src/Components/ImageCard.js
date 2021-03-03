@@ -9,6 +9,8 @@ import {
   Skeleton,
   Tag,
   Typography,
+  Menu,
+  Dropdown,
 } from "antd";
 import {
   CloseSquareOutlined,
@@ -65,31 +67,39 @@ const ImageLoader = (props, src, CloseOverlay) => {
           Loading...
         </div>
       </div>
-      
-      <Button className="imagecard-overlay-closebutton" onClick={()=>{
-        CloseOverlay();
-        }}>
-        <CloseSquareOutlined/>
-      </Button>
-      <iframe
-      onLoad={()=>{
-          SetIsLoaded(true);
-        }}
-        className="vertical-center"
-        style={{opacity:isLoaded?1:0}}
-        alt = {props.name}
-        src = {src}
-        />
 
-      {/*<img
-        onLoad={() => {
-          SetIsLoaded(true);
+      <Button
+        className="imagecard-overlay-closebutton"
+        onClick={() => {
+          CloseOverlay();
         }}
-        className="vertical-center"
-        style={{ opacity: isLoaded ? 1 : 0 }}
-        alt={props.name}
-        src={src}
-      />*/}
+      >
+        <CloseSquareOutlined />
+      </Button>
+      <>
+        {src.type !== "img" && (
+          <iframe
+            onLoad={() => {
+              SetIsLoaded(true);
+            }}
+            className="vertical-center"
+            style={{ opacity: isLoaded ? 1 : 0 }}
+            alt={props.name}
+            src={src.src}
+          />
+        )}
+        {src.type === "img" && (
+          <img
+            onLoad={() => {
+              SetIsLoaded(true);
+            }}
+            className="vertical-center"
+            style={{ opacity: isLoaded ? 1 : 0 }}
+            alt={props.name}
+            src={src.src}
+          />
+        )}
+      </>
     </React.Fragment>
   );
 };
@@ -102,12 +112,12 @@ export const ImageCard = (args, props) => {
   const [isFocused, SetIsFocused] = useState(false);
   const [originalHeight, SetOriginalHeight] = useState(null);
   const [marginOffset, SetMarginOffset] = useState(null);
-  const [fullSizeSrc, SetFullSizeSrc] = useState(null);
+  const [fullSizeSrc, SetFullSizeSrc] = useState({ src: null, type: null });
   const [showPreview, SetShowPreview] = useState(false);
   const [selected, SetSelected] = useState(
     props.isSelected ? props.isSelected : false
   );
-  const [wasSelectAll,setWasSelectAll] = useState(false);
+  const [wasSelectAll, setWasSelectAll] = useState(false);
   const [reload, SetReload] = useState(false);
 
   let style = {
@@ -126,13 +136,16 @@ export const ImageCard = (args, props) => {
 
   function loadInImage() {
     if (cardEle) SetOriginalHeight(cardEle.current.clientHeight);
-    SetFullSizeSrc(props.webViewLink.replace("/view?usp=drivesdk","/preview"));
+    SetFullSizeSrc({
+      src: props.webViewLink.replace("/view?usp=drivesdk", "/preview"),
+      type: "page",
+    });
     /*
     SetFullSizeSrc(
       "https://drive.google.com/u/0/uc?id=" + props.id + "&export=download"
     );*/
     console.log(props);
-    SetIsFocused(true);
+    SetIsFocused(false);
   }
   useEffect(() => {
     if (cardEle && originalHeight)
@@ -142,14 +155,20 @@ export const ImageCard = (args, props) => {
   function CardClicked(e) {
     console.log("Card Clicked");
 
-    if(!isFocused)
-      SetIsFocused(true);
-    else
+    if (!isFocused) SetIsFocused(true);
+    else {
+      loadInImage();
       SetShowPreview(true);
+    }
   }
 
-  function CardDoubleClicked(e){
+  function CardDoubleClicked(e) {
     console.log("Card Double Clicked");
+    SetFullSizeSrc({
+      src:
+        "https://drive.google.com/u/0/uc?id=" + props.id + "&export=download",
+      type: "img",
+    });
     SetShowPreview(true);
   }
 
@@ -163,15 +182,15 @@ export const ImageCard = (args, props) => {
    * TODO:expand functionality of this area (Close, Zoom,etc)
    */
 
-   const CloseOverlay = ()=>{
+  const CloseOverlay = () => {
     SetShowPreview(false);
     SetIsFocused(false);
-   }
+  };
   const PreviewOVerlay = (
     <div
       className="imagecard-overlay-base"
       onClick={(e) => {
-        CloseOverlay()
+        CloseOverlay();
       }}
     >
       {ImageLoader(props, fullSizeSrc, CloseOverlay)}
@@ -289,9 +308,14 @@ export const ImageCard = (args, props) => {
     <div>
       {props.description
         ? descriptionToTags(props.description).map((tag, index) => (
-            <Tag key={index} onClick={()=>{args.SearchByTag(tag)}}>
-            {tag}
-            {/* 
+            <Tag
+              key={index}
+              onClick={() => {
+                args.SearchByTag(tag);
+              }}
+            >
+              {tag}
+              {/* 
             <Link to={"/search/?s=" + tag + "&m=im"}>
             {tag}
             </Link>*/}
@@ -317,7 +341,7 @@ export const ImageCard = (args, props) => {
           UpdateSelection();
         } else
           clickTimeout = setTimeout(
-            ()=>CardClicked(e),
+            () => CardClicked(e),
             process.env.REACT_APP_DOUBLECLICK_TIMER
           );
       }}
@@ -365,12 +389,33 @@ export const ImageCard = (args, props) => {
   };
 
   useEffect(() => {
-    if(args.isSelectAll != wasSelectAll){
-    if (args.isSelectAll) props.isSelected = true;
-    else props.isSelected = false;
-    UpdateSelection();}
+    if (args.isSelectAll != wasSelectAll) {
+      if (args.isSelectAll) props.isSelected = true;
+      else props.isSelected = false;
+      UpdateSelection();
+    }
     setWasSelectAll(args.isSelectAll);
   }, [args.isSelectAll]);
+
+  /**
+   * Dropdown for action bar
+   */
+  const ImageDropdownMenu = (
+    <Menu>
+      <Menu.Item>
+        <Link to={"/folders/?id=" + props.parents[0]}>
+          {GoogleParents.FindById(props.parents[0]) && (
+            <Button block>
+              Go To: {GoogleParents.FindById(props.parents[0]).name}
+            </Button>
+          )}
+          {!GoogleParents.FindById(props.parents[0]) && (
+            <Button block>Go To Folder</Button>
+          )}
+        </Link>
+      </Menu.Item>
+    </Menu>
+  );
 
   /**
    * Action Bar at bottom of Image Card
@@ -379,6 +424,10 @@ export const ImageCard = (args, props) => {
     <CloudDownloadOutlined
       key="download"
       onClick={() => {
+        window.open(
+          "https://drive.google.com/u/0/uc?id=" + props.id + "&export=download",
+          "_blank"
+        );
         console.log("download");
       }}
     />,
@@ -393,7 +442,11 @@ export const ImageCard = (args, props) => {
         if (args.showSideBar) args.showSideBar(props);
       }}
     />,
-    <EllipsisOutlined key="ellipsis" />,
+    <Dropdown overlay={ImageDropdownMenu}>
+      <a className="ant-dropdown-link" onClick={(e) => e.preventDefault()}>
+        <EllipsisOutlined key="ellipsis" />
+      </a>
+    </Dropdown>,
   ];
 
   return (
@@ -405,11 +458,18 @@ export const ImageCard = (args, props) => {
             className={"image-card"}
             style={style}
             cover={CoverImage}
-            onMouseEnter={() => {
-              loadInImage();
+            onMouseDown={() => {
+              //loadInImage();
             }}
             onMouseLeave={() => {
-              SetIsFocused(false);
+              setTimeout(() => {
+                SetIsFocused(false);
+              }, 100);
+            }}
+            onBlur={() => {
+              setTimeout(() => {
+                SetIsFocused(false);
+              }, 100);
             }}
             actions={isFocused && ActionBar}
           >

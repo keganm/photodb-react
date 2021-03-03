@@ -27,6 +27,7 @@ import { ImageCard } from "./ImageCard";
 import { SideBar } from "./Sidebar";
 import { kMimeOptions } from "../Utils/FileProperties";
 const { Meta } = Card;
+const { SubMenu } = Menu;
 
 export const Images = (props) => {
   const [screenWidth, SetScreenWidth] = useState(window.innerWidth);
@@ -47,6 +48,7 @@ export const Images = (props) => {
   }
 
   function OnFileListReturned(list) {
+    SetSelectionMode(false);
     list.sort((a, b) => (a.name > b.name ? 1 : -1));
     if (GoogleParents && GoogleParents.isStructured) {
       for (let i = 0; i < list.length; i++) {
@@ -249,9 +251,10 @@ export const Images = (props) => {
   function handleMenuClick(e) {}
 
   const ImageMenu = (
-    <Dropdown
-      overlay={
         <Menu onClick={handleMenuClick}>
+        <SubMenu title="filter">
+          <Menu.Item>Images</Menu.Item>
+        </SubMenu>
           <Menu.Item key="ignore">
             <Checkbox
               checked={selectionMode}
@@ -273,31 +276,30 @@ export const Images = (props) => {
               Select All
             </Checkbox>
           </Menu.Item>
-        </Menu>
-      }
-    >
-      <Button>
+     { /*<Button>
         <MenuOutlined />
-      </Button>
-    </Dropdown>
+      </Button>*/}
+        </Menu>
+      
   );
 
   return (
     <>
+    <Dropdown trigger={['contextMenu']} overlay={ImageMenu}>
+    <div>
       {ShowFiles() && (
         <Card
           title="Images"
           style={{
-            paddingBottom: "18vh",
           }}
-          extra={ImageMenu}
         >
           <Row>
             <RatioBasedColumms />
           </Row>
         </Card>
       )}
-
+</div>
+      </Dropdown>
       <SideBar
         isSearchInterface={props.isSearchInterface}
         isVisible={isVisible}

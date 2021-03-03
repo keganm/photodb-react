@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { gapi, loadAuth2 } from "gapi-script";
 import { Button, Dropdown, Menu, Tooltip } from "antd";
-
+import { ProfileSvg } from "../Utils/SVGIcons";
+import Icon from '@ant-design/icons';
 function GoogleLogin(props) {
   const updateUserCallback = props.setnewuser;
 
@@ -15,9 +16,11 @@ function GoogleLogin(props) {
       process.env.REACT_APP_CSCOPES
     );
     if (auth2.isSignedIn.get()){
+      console.log("Is Signed in");
       updateUser(auth2.currentUser.get().getBasicProfile());
     }
     else {
+      console.log("Attach Sign in");
       attachSignInEle(document.getElementById("gapi-signin-button"), auth2);
     }
   }
@@ -88,6 +91,7 @@ function GoogleLogin(props) {
     });
   }
 
+  const ProfileIcon = props => <Icon component={ProfileSvg} {...props} />;
 
 
   return (
@@ -111,7 +115,7 @@ function GoogleLogin(props) {
         <img className="gapi-profile-image" src={user.img}/>
       )}
       {user == null && (
-        <img style={{opacity:"0.35"}} className="gapi-profile-image" src="./images/sharp_account_box_black_36dp.png"/>
+        <ProfileIcon style={{ fontSize: '32px' }}/>
       )}
       </Button>
       </Tooltip>

@@ -131,13 +131,18 @@ function Contents(props) {
         }
     }
 
+    const GetBodyHeight = () =>{
+        return {overflowY:"auto", height:window.innerHeight - headerHeight + "px" };
+    }
+    const [headerHeight,SetHeaderHeight] = useState(68);
     const [isVisible,
         setVisible] = useState(true);
     return (
         <Layout style={layoutStyle}>
-            <SearchBar SetSearchPrams={SetSearchPrams} LoadedPrams={searchPrams} SetCurrentUser={SetCurrentUser}/>
+            <SearchBar SetHeaderHeight={SetHeaderHeight} SetSearchPrams={SetSearchPrams} LoadedPrams={searchPrams} SetCurrentUser={SetCurrentUser} style={{ position: 'fixed', zIndex: 1, width: '100%' }}/>
             <Layout>
                 <Layout>
+                <div style={GetBodyHeight()}>
                     <Content className="App">
                         {currentUser && photoFolder && (
                             <Switch>
@@ -196,8 +201,8 @@ function Contents(props) {
                         )}
                         <BackTop/>
                     </Content>
-
                     <Footer>Footer</Footer>
+                    </div>
                 </Layout>
             </Layout>
         </Layout>

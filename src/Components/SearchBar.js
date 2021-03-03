@@ -285,12 +285,13 @@ export const SearchBar = (props) => {
 
   const getHeaderHeight = (isexpanded) => {
     let mq = CheckMedia(screenSize.width);
-    let h = "24vh";
-    if (mq >= MediaSizes.xlarge) h = "18vh";
-    if (mq <= MediaSizes.medium) h = "34vh";
-    if (!isexpanded) h = screenSize.width < 731 ? "8vh" : "6vh";
+    let h = 24;
+    if (mq >= MediaSizes.xlarge) h = 18;
+    if (mq <= MediaSizes.medium) h = 34;
+    if (!isexpanded) h = screenSize.width < 731 ? 8 : 6;
+    props.SetHeaderHeight(screenSize.height * (h/100))
     return {
-      height: h,
+      height: h + "vh",
       width: "100%",
       padding: "4px",
     };
@@ -331,10 +332,7 @@ export const SearchBar = (props) => {
             <span>Fluidity Photo DB</span>
           )}
         </Col>
-        <Col span={1}></Col>
-        <Col span={17}>
-          <Row>
-            <Col span={19}>
+            <Col span={15}>
               <Search
                 placeholder="input search text"
                 onSearch={onSearch}
@@ -343,19 +341,16 @@ export const SearchBar = (props) => {
                 enterButton
               />
             </Col>
-            <Col span={1}>
-        </Col>
-            <Col span={3}>
+            <Col span={4}>
+            <span className="ant-input-group-addon" style={{padding:"0",border:"0"}}>
               <Button
                 onClick={() => {
                   setExpanded(!expanded);
                 }}
               >
                 {expandButtonContent()}
-              </Button>
+              </Button></span>
             </Col>
-          </Row>
-        </Col>
         <Col span={1}>
 
           <GoogleLogin setnewuser={props.SetCurrentUser}/>
