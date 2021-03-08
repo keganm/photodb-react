@@ -26,6 +26,7 @@ import { GoogleParents } from "./parentManager";
 import { ImageCard } from "./ImageCard";
 import { SideBar } from "./Sidebar";
 import { kMimeOptions } from "../Utils/FileProperties";
+import { MoveToModal } from "./MoveToModal";
 const { Meta } = Card;
 const { SubMenu } = Menu;
 
@@ -35,6 +36,9 @@ export const Images = (props) => {
   const [selectionMode, SetSelectionMode] = useState(false);
   const [selectionSet, SetSelectionSet] = useState([]);
   const [isSelectAll, SetSelectAll] = useState(false);
+  const [filters, SetFilters] = useState(["image"]);
+  const [indeterminate, SetIndeterminate] = useState(true);
+  const [checkAll, SetCheckAll] = useState(false);
 
   const mySideBar = useRef(null);
   useEffect(() => {
@@ -187,6 +191,7 @@ export const Images = (props) => {
       return col.map((item) =>
         ImageCard(
           {
+            isSearchInterface: props.isSearchInterface,
             showSideBar: ShowSideBar,
             screenWidth: screenWidth,
             SetCurrentFolder: props.SetCurrentFolder,
@@ -194,6 +199,7 @@ export const Images = (props) => {
             ModifySelectionSet: ModifySelectionSet,
             isSelectAll: isSelectAll,
             SearchByTag: SearchByTag,
+            filters:filters,
           },
           item
         )
@@ -250,36 +256,60 @@ export const Images = (props) => {
   }
   function handleMenuClick(e) {}
 
+  const OnFilterChange = list =>{
+    SetFilters(list);
+    SetIndeterminate(!!list.length && list.length < kMimeOptions.length);
+    SetCheckAll(list.length === kMimeOptions.length);
+  }
+
+  const OnCheckAllChange = e =>{
+    let l = [];
+    for(let i = 0; i < kMimeOptions.length; i++)
+      l.push(kMimeOptions[i].value);
+    SetFilters(e.target.checked ? l:[]);
+    SetIndeterminate(false)
+    SetCheckAll(e.target.checked)
+  }
+
+  const FilterMenu = (
+    <SubMenu title="filter">
+    <Checkbox.Group className="filterContext" value={filters} options={kMimeOptions} onChange={OnFilterChange}/>
+    <Checkbox indeterminate={indeterminate} onChange={OnCheckAllChange} checked={checkAll} style={{display: "block", paddingLeft: "6px"}}>
+      Check All
+    </Checkbox>
+    </SubMenu>
+  )
+
   const ImageMenu = (
-        <Menu onClick={handleMenuClick}>
-        <SubMenu title="filter">
-          <Menu.Item>Images</Menu.Item>
-        </SubMenu>
-          <Menu.Item key="ignore">
-            <Checkbox
-              checked={selectionMode}
-              onChange={(e) => {
-                if (!e.target.checked) SetSelectionSet([]);
-                SetSelectionMode(e.target.checked);
-              }}
-            >
-              Select Multiple
-            </Checkbox>
-          </Menu.Item>
-          <Menu.Item key="selectall">
-            <Checkbox
-              checked={isSelectAll}
-              onChange={(e) => {
-                SetSelectAll(e.target.checked);
-              }}
-            >
-              Select All
-            </Checkbox>
-          </Menu.Item>
-     { /*<Button>
-        <MenuOutlined />
-      </Button>*/}
-        </Menu>
+    <Menu onClick={handleMenuClick}>
+    {FilterMenu}
+    {selectionMode && 
+    <Menu.Item key="edit" onClick={()=>{ShowSideBar(selectionSet[0])}}>
+      Edit Selection
+    </Menu.Item>
+    }
+      <Menu.Item key="ignore">
+        <Checkbox
+          checked={selectionMode}
+          onChange={(e) => {
+            if (!e.target.checked) SetSelectionSet([]);
+              SetSelectionMode(e.target.checked);
+          }}
+        >
+          Select Multiple
+        </Checkbox>
+      </Menu.Item>
+      <Menu.Item key="selectall">
+        <Checkbox
+          checked={isSelectAll}
+          onChange={(e) => {
+            SetSelectAll(e.target.checked);
+          }}
+        >
+          Select All
+        </Checkbox>
+      </Menu.Item>
+    </Menu>
       
   );
 
@@ -308,6 +338,7 @@ export const Images = (props) => {
         currentInfo={currentInfo}
         ReloadImages={ReloadImages}
       />
+      <MoveToModal/>
     </>
   );
 };

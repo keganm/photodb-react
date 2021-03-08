@@ -240,7 +240,7 @@ export const SideBar = (props) => {
           style={{ textAlign: "center" }}
         >
           {props.currentInfo.hasThumbnail ? (
-            <img src={props.currentInfo.thumbnailLink} alt="thumbnail view" />
+            <img src={props.currentInfo.thumbnailLink.replace("s220", "s400")} alt="thumbnail view" />
           ) : (
             <FileImageOutlined
               style={{ fontSize: "120px", textAlign: "center", width: "100%" }}
@@ -261,7 +261,7 @@ export const SideBar = (props) => {
           >
             {fntName ? fntName : ""}
           </Paragraph>
-          {parentFolder && props.isSearchInterface && (
+          {props.isSearchInterface && (
             <Row gutter={[8, 16]} style={{ width: "100%" }}>
               <Col flex="75px" style={{ textAlign: "right" }}>
                 Go to

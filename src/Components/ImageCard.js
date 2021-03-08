@@ -119,6 +119,7 @@ export const ImageCard = (args, props) => {
   );
   const [wasSelectAll, setWasSelectAll] = useState(false);
   const [reload, SetReload] = useState(false);
+  const [inFilter, SetInFilter] = useState(false);
 
   let style = {
     textAlign: "center",
@@ -151,6 +152,15 @@ export const ImageCard = (args, props) => {
     if (cardEle && originalHeight)
       SetMarginOffset(originalHeight - cardEle.current.clientHeight);
   }, [originalHeight]);
+  useEffect(()=>{
+    let match = false;
+    for(let i = 0; i<args.filters.length; i++)
+    {
+      if(props.mimeType.includes(args.filters[i]))
+        match = true;
+    }
+    SetInFilter(match);
+  }, [args.filters])
 
   function CardClicked(e) {
     console.log("Card Clicked");
@@ -350,10 +360,11 @@ export const ImageCard = (args, props) => {
         CardDoubleClicked(e);
       }}
       src={props.thumbnailLink.replace("s220", "s400")}
-      onError={() => {
+      onError={(e) => {
+        console.log("reloading",e.currentTarget);
         setTimeout(() => {
           SetReload(true);
-        }, Math.random() * 4000 + 500);
+        }, Math.random() * 4000 + 2000);
       }}
     />
   ) : props.mimeType.includes("zip") ? (
@@ -403,6 +414,7 @@ export const ImageCard = (args, props) => {
   const ImageDropdownMenu = (
     <Menu>
       <Menu.Item>
+      {props.parents && args.isSearchInterface &&
         <Link to={"/folders/?id=" + props.parents[0]}>
           {GoogleParents.FindById(props.parents[0]) && (
             <Button block>
@@ -412,7 +424,7 @@ export const ImageCard = (args, props) => {
           {!GoogleParents.FindById(props.parents[0]) && (
             <Button block>Go To Folder</Button>
           )}
-        </Link>
+        </Link>}
       </Menu.Item>
     </Menu>
   );
@@ -431,6 +443,9 @@ export const ImageCard = (args, props) => {
         console.log("download");
       }}
     />,
+    <Dropdown overlay={ImageDropdownMenu} placement="topCenter">
+    <EllipsisOutlined key="ellipsis" />
+    </Dropdown>,
     <EditOutlined
       key="edit"
       onClick={() => {
@@ -441,15 +456,11 @@ export const ImageCard = (args, props) => {
         }
         if (args.showSideBar) args.showSideBar(props);
       }}
-    />,
-    <Dropdown overlay={ImageDropdownMenu}>
-      <a className="ant-dropdown-link" onClick={(e) => e.preventDefault()}>
-        <EllipsisOutlined key="ellipsis" />
-      </a>
-    </Dropdown>,
+    />
   ];
 
-  return (
+  return (<>
+    {inFilter &&
     <Row style={isFocused && rowStyle()} key={props.id}>
       <Col ref={cardEle} span={24}>
         {!reload && (
@@ -485,5 +496,6 @@ export const ImageCard = (args, props) => {
         )}
       </Col>
     </Row>
+    }</>
   );
 };

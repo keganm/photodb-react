@@ -38,7 +38,7 @@ export const kTypeOptions = [
     },
     {
       label: "WaterFall",
-      value: "wterfall",
+      value: "waterfall",
     },
   ];
   export const kCreditOptions = [
