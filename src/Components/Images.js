@@ -338,7 +338,9 @@ export const Images = (props) => {
         currentInfo={currentInfo}
         ReloadImages={ReloadImages}
       />
-      <MoveToModal/>
+      <MoveToModal
+        gapiInterface = {props.gapiInterface}
+      />
     </>
   );
 };

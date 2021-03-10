@@ -6,6 +6,9 @@ import { FolderTreeView } from "./FolderTreeView";
 export const MoveToModal = (props) =>{
     const [isModalVisible,setIsModalVisible] = useState(true);
 
+    useEffect(()=>{
+
+    },[])
 
     const ShowModal = () =>{
         setIsModalVisible(true);
@@ -24,10 +27,10 @@ export const MoveToModal = (props) =>{
 
     return(
         <Modal title="MoveTo" visible={isModalVisible} onOk={onOK} onCancel={onCancel}>
-        <FolderTreeView/>
+            <FolderTreeView
+                gapiInterface ={props.gapiInterface}
+            />
         </Modal>
     )
-
-
 }
 

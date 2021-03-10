@@ -9,6 +9,7 @@ class GoogleInterface {
   Init = (props) => {
     GoogleDrive.Init(props, () => {
       GoogleParents.Init(GoogleDrive, props);
+      this.isInit = true;
     });
   };
 }

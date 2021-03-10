@@ -3,16 +3,21 @@ import { GoogleDrive } from "./GoogleDrive";
 class ParentManager {
   constructor(props) {
     this.folderStructure = [];
+    this.childrenStructure = [];
     this.props = props;
     this.callbacks = [];
+    this.childrenCallbackQueue = [];
+    this.parentCallbackQueue = [];
     this.isStructured = false;
+    this.key ="Stamp";
   }
 
   Init = (gdrive, props) => {
+    console.log("Init");
     this.props = props;
-    this.callbacks = [];
     this.isStructured = false;
     GoogleDrive.GetFolderList(this.GetFolders);
+    this.key = Date.now() + "Stamp";
   };
 
   /*On Receiving response from get folder list
@@ -23,18 +28,24 @@ class ParentManager {
     console.log(resp);
     //Set the photofolder as the root
     this.folderStructure = [GoogleDrive.photoFolder];
+
+    this.FillChildrenList(resp);
     //Add the returned list to the folder structure
     Array.prototype.push.apply(
       this.folderStructure,
       this.ToFolderStructList(resp)
     );
+
+
     this.ParseList().then(() => {
       //Remove the initial parent out of folders
       for (let i = 0; i < this.folderStructure.length; i++) {
         this.folderStructure[i].parents.shift();
       }
+      console.log(this.key);
       this.isStructured = true;
       this.ExecuteGetParentsCalbacks();
+      this.ExecuteChildrenCallbacks();
     });
   };
   /*Initiate the iteration through the folder list as a promise*/
@@ -77,6 +88,48 @@ class ParentManager {
       this.stepThroughFolders(this.folderStructure[list[i]].id, newList);
     }
   };
+
+  /*Sort out children list*/
+  FillChildrenList = (list) =>{
+    console.log(list);
+    
+    for(let i = 0; i < list.length; i++)
+    {
+      list[i].title = list[i].name;
+      list[i].key = list[i].id;
+    }
+    
+    let par = GoogleDrive.photoFolder;
+    par.title = par.name;
+    par.key = par.id;
+    
+    if(par){
+      let c = this.StepChildren(par,list);
+      if(c.length > 0)
+        par.children = c;
+    }
+
+    
+    
+
+    console.log("Finished",par);
+    this.childrenStructure = [par];
+  }
+
+  StepChildren = (folder,list) =>{
+    let kids = list.filter((obj)=>{
+      return obj.parents[0] === folder.id;
+    });
+
+    for(let i = 0; i < kids.length; i++)
+    {
+      let c = this.StepChildren(kids[i],list);
+      if(c.length > 0)
+        kids[i].children = c;
+    }
+
+    return kids;
+  }
 
   /*      UTILS    */
   /*Convert to folder structure*/
@@ -127,10 +180,36 @@ class ParentManager {
       });
   }
 
+  AddChildrenCallback(id,callback){
+    if(this.isStructured) {
+      callback(this.childrenStructure);
+      return;
+    }
+    if(callback && id)
+      this.childrenCallbackQueue.push({
+        callback:callback,
+        id:id,
+      });
+      
+      console.log(this.key);
+  }
+
   ExecuteGetParentsCalbacks() {
     for (let i = 0; i < this.callbacks.length; i++)
+    {
       this.callbacks[i].callback(this.GetParents(this.callbacks[i].id));
+    }
     this.callbacks = [];
+  }
+
+  ExecuteChildrenCallbacks(){
+    for(let i = 0; i < this.childrenCallbackQueue.length; i++)
+    {
+      this.childrenCallbackQueue[i].callback(this.childrenStructure);
+    }
+    this.childrenCallbackQueue = [];
+
+    console.log(this.key);
   }
 
   /*Returns the parent list of id*/

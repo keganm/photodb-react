@@ -6,6 +6,17 @@ import { GoogleParents } from "./parentManager";
 
 export const FolderTreeView = (props) =>{
 
+    const [childrenView,SetChildrenView] = useState([]);
+    useEffect(()=>{
+        if(!props.gapiInterface.isInit)
+        return;
+        console.log("Add callback folder tree view")
+        GoogleParents.AddChildrenCallback(
+            "folder-treeview",
+            (e)=>{SetChildrenView(e)}
+        )
+    },[props.gapiInterface.isInit])
+
     const OnSelected = (e) =>{
 
     }
@@ -19,6 +30,12 @@ export const FolderTreeView = (props) =>{
 
     return(
         <div>
+            <Tree
+                showLine={true}
+                showIcon={false}
+                onSelect={OnSelected}
+                treeData={childrenView}
+                />
             <span>this is the tree view</span>
         </div>
     );

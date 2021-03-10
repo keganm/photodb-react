@@ -11,7 +11,7 @@ export const FolderBreadcrumb = (props) => {
   const [BreadcrumbList, SetBreadcrumbList] = useState(null);
 
   function IsReady() {
-    return props.currentFolder && props.photoFolder && props.gapiInterface;
+    return props.currentFolder && props.photoFolder && props.gapiInterface.isInit;
   }
 
   useEffect(() => {
